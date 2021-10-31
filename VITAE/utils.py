@@ -573,6 +573,7 @@ def DE_test(Y, X, gene_names, alpha: float = 0.05):
 
 type_dict = {
     # dyno
+    'dentate_withdays':'UMI',
     'dentate':'UMI', 
     'immune':'UMI', 
     'neonatal':'UMI', 
@@ -670,6 +671,9 @@ def load_data(path, file_name):
             data['grouping'] = np.array(data['grouping'], dtype=object)
             data['root_milestone_id'] = np.array(f['root_milestone_id']).astype(str)[0]
             data['covariates'] = np.array(np.array(list(f['covariates'])).tolist(), dtype=np.float32)
+        if file_name == 'dentate_withdays':
+            data['covariates'] = np.array([item.decode('utf-8').replace('*', '') for item in f['days']], dtype=object)
+            data['covariates'] = data['covariates'].astype(float).reshape(-1, 1)
 
     data['type'] = type_dict[file_name]
     if data['type']=='non-UMI':
