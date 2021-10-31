@@ -269,7 +269,7 @@ class VITAE():
 
 
     def init_latent_space(self, cluster_label = None, log_pi = None, res: float = 1.0, 
-                          ratio_prune= None, dist_thres = 0.5):
+                          ratio_prune= None, dist_thres = 0.5, pilayer = False):
         '''Initialize the latent space.
 
         Parameters
@@ -359,6 +359,8 @@ class VITAE():
         
         self.labels_map = labels_map
         self.vae.init_latent_space(n_clusters, mu, log_pi)
+        if pilayer:
+            self.vae.create_pilayer()
         self.inferer = Inferer(self.n_clusters)
 
 
