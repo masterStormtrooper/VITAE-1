@@ -56,7 +56,7 @@ def warp_dataset(X_normalized, c_score, batch_size:int, X=None, scale_factor=Non
 
 def pre_train(train_dataset, test_dataset, vae, learning_rate: float, L: int, alpha: float,
               num_epoch_pre: int, num_step_per_epoch: int, 
-              es_patience: int, es_tolerance: int, es_relative: bool):
+              es_patience: int, es_tolerance: int, es_relative: bool, echo=False):
     '''Pretraining.
 
     Parameters
@@ -99,7 +99,8 @@ def pre_train(train_dataset, test_dataset, vae, learning_rate: float, L: int, al
     for epoch in range(num_epoch_pre):
         progbar = Progbar(num_step_per_epoch)
         
-        print('Pretrain - Start of epoch %d' % (epoch,))
+        if echo:
+            print('Pretrain - Start of epoch %d' % (epoch,))
 
         # Iterate over the batches of the dataset.
         for step, (x_batch, x_norm_batch, c_score, x_scale_factor) in enumerate(train_dataset):
@@ -112,14 +113,15 @@ def pre_train(train_dataset, test_dataset, vae, learning_rate: float, L: int, al
             optimizer.apply_gradients(zip(grads, vae.trainable_weights))                                
             loss_train(loss)
             
-            if (step+1)%10==0 or step+1==num_step_per_epoch:
+            if echo and ((step+1)%10==0 or step+1==num_step_per_epoch):
                 progbar.update(step+1, [('Reconstructed Loss', float(loss))])
                 
         for step, (x_batch, x_norm_batch, c_score, x_scale_factor) in enumerate(test_dataset):
             losses = vae(x_norm_batch, c_score, x_batch, x_scale_factor, pre_train=True, L=L, alpha=alpha)
             loss = tf.reduce_sum(losses[0])
             loss_test(loss)
-        print(' Training loss over epoch: %.4f. Testing loss over epoch: %.4f' % (float(loss_train.result()),
+        if echo:
+            print(' Training loss over epoch: %.4f. Testing loss over epoch: %.4f' % (float(loss_train.result()),
                                                                             float(loss_test.result())))
         if early_stopping(float(loss_test.result())):
             print('Early stopping.')
@@ -135,7 +137,7 @@ def train(train_dataset, test_dataset, vae,
         learning_rate: float, 
         L: int, alpha: float, beta: float,
         num_epoch: int, num_step_per_epoch: int, 
-        es_patience: int, es_tolerance: float, es_relative: bool, es_warmup: int, **kwargs):
+        es_patience: int, es_tolerance: float, es_relative: bool, es_warmup: int, echo=False, **kwargs):
     '''Training.
 
     Parameters
@@ -185,8 +187,9 @@ def train(train_dataset, test_dataset, vae,
     weight = tf.convert_to_tensor(weight)
     
     for epoch in range(num_epoch):
-        print('Start of epoch %d' % (epoch,))
-        progbar = Progbar(num_step_per_epoch)
+        if echo:
+            print('Start of epoch %d' % (epoch,))
+            progbar = Progbar(num_step_per_epoch)
         
         # Iterate over the batches of the dataset.
         for step, (x_batch, x_norm_batch, c_score, x_scale_factor) in enumerate(train_dataset):
@@ -212,7 +215,7 @@ def train(train_dataset, test_dataset, vae,
             loss_train[2](losses[2])
             loss_train[3](loss)
 
-            if (step+1)%10==0 or step+1==num_step_per_epoch:
+            if echo and ((step+1)%10==0 or step+1==num_step_per_epoch):
                 progbar.update(step+1, [
                         ('loss_neg_E_nb'    ,   float(losses[0])),
                         ('loss_neg_E_pz'    ,   float(losses[1])),
@@ -232,15 +235,16 @@ def train(train_dataset, test_dataset, vae,
             print('Early stopping.')
             break
         
-        print(' Training loss over epoch: %.4f (%.4f, %.4f, %.4f) Testing loss over epoch: %.4f (%.4f, %.4f, %.4f)' % (
-            float(loss_train[3].result()),
-            float(loss_train[0].result()),
-            float(loss_train[1].result()),
-            float(loss_train[2].result()),
-            float(loss_test[3].result()),
-            float(loss_test[0].result()),
-            float(loss_test[1].result()),
-            float(loss_test[2].result())))
+        if echo:
+            print(' Training loss over epoch: %.4f (%.4f, %.4f, %.4f) Testing loss over epoch: %.4f (%.4f, %.4f, %.4f)' % (
+                float(loss_train[3].result()),
+                float(loss_train[0].result()),
+                float(loss_train[1].result()),
+                float(loss_train[2].result()),
+                float(loss_test[3].result()),
+                float(loss_test[0].result()),
+                float(loss_test[1].result()),
+                float(loss_test[2].result())))
         [l.reset_states() for l in loss_train]
         [l.reset_states() for l in loss_test]
 
