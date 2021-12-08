@@ -83,7 +83,7 @@ class VITAE():
         else:
             self.adata = adata
         if covariates is not None:
-            self.c_score = adata.obs[covariates].to_numpy()
+            self.c_score = adata.obs[covariates].to_numpy().reshape(-1, 1) # need to change afterwards
         else:
             self.c_score = None
         
@@ -650,8 +650,11 @@ class VITAE():
         uni_cluster_labels = list(self.adata.obs['vitae_new_clustering'].cat.categories)
         embed_z = self._adata.obsm[self.dict_method_scname[method]]
         embed_mu = np.zeros((len(uni_cluster_labels), 2))
+        print(uni_cluster_labels)
         for i,l in enumerate(uni_cluster_labels):
             embed_mu[i,:] = np.mean(embed_z[cluster_labels==l], axis=0)
+            print(l)
+            print(embed_z[cluster_labels==l].shape)
             embed_mu[i,:] = embed_z[cluster_labels==l][np.argmin(np.mean((embed_z[cluster_labels==l] - embed_mu[i,:])**2, axis=1)),:]
         ax = self.inferer.plot_trajectory(ax, embed_z, embed_mu, uni_cluster_labels)
         return ax
