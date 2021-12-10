@@ -2,6 +2,7 @@ from numpy.matrixlib.defmatrix import matrix
 import pandas as pd
 import scanpy as sc
 import numpy as np
+import seaborn as sns
 import sys
 sys.path.append('/home/alanluo/VITAE-1')
 import VITAE
@@ -9,14 +10,14 @@ from VITAE.utils import load_data
 import tensorflow as tf
 import random
 import os
+from matplotlib import pyplot as plt
 
 
 def create_heatmap_matrix(pi):
     """Create heatmap matrix
     @pi: numpy array contains pi weights"""
-    n = pi.shape[0]
-    matrix = np.zeros_like((n, n))
-    matrix[np.triu_indices(n)] = pi
+    matrix = np.zeros((5, 5))
+    matrix[np.triu_indices(5)] = pi
     mask = np.tril(np.ones_like(matrix), k=-1)
     return matrix, mask
 
@@ -37,22 +38,36 @@ def run(seed, data, name, fp):
     model = VITAE.VITAE()
     model.initialize(adata = data, covariates='days', model_type = 'Gaussian')
     model.pre_train() 
-    model.init_latent_space(cluster_label= 'leiden', res = 0.4, pilayer=True) 
-    
-    model.train()
-    p = model.vae.pilayer
-    for x in data.obs['days'].unique():
-        tmp = tf.expand_dims(tf.constant([x], dtype=tf.float32), 0)
-        fn = fp + f'dentate_day_{str(x)}_seed_{seed}_run_{name}.npy'
-        np.save(fn, tf.nn.softmax(p(tmp)).numpy()[0])
+    model.pre_train(early_stopping_tolerance = 0.01, early_stopping_relative = True)
+    model.init_latent_space(cluster_label= 'leiden', res = 0.4)
+    model.train(early_stopping_tolerance = 0.01, early_stopping_relative = True)
+    model.init_inference(batch_size=32, L=100)
+
+    f, axes = plt.subplots(1, 5, figsize=(25,5))
+    cbar_ax = f.add_axes([0, 0.2, .03, 0.7])
     sc.tl.umap(model._adata_z)
     model._adata.obsp = model._adata_z.obsp
     model._adata.obsm = model._adata_z.obsm
-    model._adata.write_h5ad(fp + f'dentate_scanpydata_seed_{seed}_run_{name}')
-    
+    sc.pl.umap(model._adata, color='vitae_init_clustering', show=False, ax=axes[-1])
+    idx = 0
+    p = model.vae.pilayer
+    for x in data.obs['days'].unique():
+        tmp = tf.expand_dims(tf.constant([x], dtype=tf.float32), 0)
+        pi_val = tf.nn.softmax(p(tmp)).numpy()[0]
+        matrix, mask = create_heatmap_matrix(pi_val)
+        sns.heatmap(matrix, vmin=0, vmax=1, cmap="YlGnBu", mask=mask, ax=axes[idx], cbar_ax=cbar_ax)
+        axes[idx].set_title(f'dentate_run_{name}_seed_{seed}_day_{x}')
+        idx += 1
+        #np.save(fn, tf.nn.softmax(p(tmp)).numpy()[0])
+    # sc.tl.umap(model._adata_z)
+    # model._adata.obsp = model._adata_z.obsp
+    # model._adata.obsm = model._adata_z.obsm
+    # model._adata.write_h5ad(fp + f'dentate_scanpydata_seed_{seed}_run_{name}')
+    f.savefig(fp + f'dentate_run_{name}_seed_{seed}.png')
+
 if __name__ == "__main__":
     # load data
-    fp = '/home/alanluo/VITAE-1/output/'
+    fp = '/home/alanluo/vitae_output/'
     data = load_data("/home/alanluo/VITAE-1/data/", file_name="dentate_withdays")
     labels = pd.DataFrame({'Grouping': data['grouping']}, index = data['cell_ids'])
     labels['Grouping'] = labels['Grouping'].astype("category")
