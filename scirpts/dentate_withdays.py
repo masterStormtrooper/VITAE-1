@@ -2,13 +2,13 @@ from numpy.matrixlib.defmatrix import matrix
 import pandas as pd
 import scanpy as sc
 import numpy as np
+import sys
+sys.path.append('/home/alanluo/VITAE-1')
 import VITAE
 from VITAE.utils import load_data
 import tensorflow as tf
 import random
 import os
-import sys
-sys.path.append('/home/alanluo/VITAE-1')
 
 
 def create_heatmap_matrix(pi):
