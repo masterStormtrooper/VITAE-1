@@ -57,7 +57,7 @@ def run(seed, data, name, fp):
     sc.tl.umap(model._adata_z)
     model._adata.obsp = model._adata_z.obsp
     model._adata.obsm = model._adata_z.obsm
-    sc.pl.umap(model._adata, color='vitae_init_clustering', show=False, ax=axes[-1])
+    sc.pl.umap(model._adata, color='vitae_new_clustering', show=False, ax=axes[-1])
     f.savefig(fp + f'dentate_run_{name}_seed_{seed}.png')
 
 if __name__ == "__main__":
