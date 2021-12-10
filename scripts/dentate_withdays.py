@@ -41,16 +41,12 @@ def run(seed, data, name, fp):
     model.pre_train(early_stopping_tolerance = 0.01, early_stopping_relative = True)
     model.init_latent_space(cluster_label= 'leiden', res = 0.4)
     model.train(early_stopping_tolerance = 0.01, early_stopping_relative = True)
-    model.init_inference(batch_size=32, L=100)
 
     f, axes = plt.subplots(1, 5, figsize=(25,5))
     cbar_ax = f.add_axes([0, 0.2, .03, 0.7])
-    sc.tl.umap(model._adata_z)
-    model._adata.obsp = model._adata_z.obsp
-    model._adata.obsm = model._adata_z.obsm
-    sc.pl.umap(model._adata, color='vitae_init_clustering', show=False, ax=axes[-1])
     idx = 0
     p = model.vae.pilayer
+
     for x in data.obs['days'].unique():
         tmp = tf.expand_dims(tf.constant([x], dtype=tf.float32), 0)
         pi_val = tf.nn.softmax(p(tmp)).numpy()[0]
@@ -58,11 +54,11 @@ def run(seed, data, name, fp):
         sns.heatmap(matrix, vmin=0, vmax=1, cmap="YlGnBu", mask=mask, ax=axes[idx], cbar_ax=cbar_ax)
         axes[idx].set_title(f'dentate_run_{name}_seed_{seed}_day_{x}')
         idx += 1
-        #np.save(fn, tf.nn.softmax(p(tmp)).numpy()[0])
-    # sc.tl.umap(model._adata_z)
-    # model._adata.obsp = model._adata_z.obsp
-    # model._adata.obsm = model._adata_z.obsm
-    # model._adata.write_h5ad(fp + f'dentate_scanpydata_seed_{seed}_run_{name}')
+    model.init_inference(batch_size=32, L=100)
+    sc.tl.umap(model._adata_z)
+    model._adata.obsp = model._adata_z.obsp
+    model._adata.obsm = model._adata_z.obsm
+    sc.pl.umap(model._adata, color='vitae_init_clustering', show=False, ax=axes[-1])
     f.savefig(fp + f'dentate_run_{name}_seed_{seed}.png')
 
 if __name__ == "__main__":
