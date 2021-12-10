@@ -46,9 +46,13 @@ def run(seed, data, name, fp):
     cbar_ax = f.add_axes([0, 0.2, .03, 0.7])
     idx = 0
     p = model.vae.pilayer
-
+    
     for x in data.obs['days'].unique():
+        print(x)
         tmp = tf.expand_dims(tf.constant([x], dtype=tf.float32), 0)
+        print(tmp)
+        print(p)
+        print(tf.nn.softmax(p(tmp)).numpy())
         pi_val = tf.nn.softmax(p(tmp)).numpy()[0]
         matrix, mask = create_heatmap_matrix(pi_val)
         sns.heatmap(matrix, vmin=0, vmax=1, cmap="YlGnBu", mask=mask, ax=axes[idx], cbar_ax=cbar_ax)
