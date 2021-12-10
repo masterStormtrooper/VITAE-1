@@ -2,11 +2,13 @@ from numpy.matrixlib.defmatrix import matrix
 import pandas as pd
 import scanpy as sc
 import numpy as np
-from VITAE import VITAE
+import VITAE
 from VITAE.utils import load_data
 import tensorflow as tf
 import random
 import os
+import sys
+sys.path.append('/home/alanluo/VITAE-1')
 
 
 def create_heatmap_matrix(pi):
@@ -32,7 +34,7 @@ def run(seed, data, name, fp):
     @data: scanpy object"""
     reset_random_seeds(seed)
     tf.keras.backend.clear_session() 
-    model = VITAE()
+    model = VITAE.VITAE()
     model.initialize(adata = data, covariates='days', model_type = 'Gaussian')
     model.pre_train() 
     model.init_latent_space(cluster_label= 'leiden', res = 0.4, pilayer=True) 
@@ -41,16 +43,16 @@ def run(seed, data, name, fp):
     p = model.vae.pilayer
     for x in data.obs['days'].unique():
         tmp = tf.expand_dims(tf.constant([x], dtype=tf.float32), 0)
-        tf.nn.softmax(p(tmp)).numpy()[0].save(fp + f'day:{str(x)}-run{name}')
+        tf.nn.softmax(p(tmp)).numpy()[0].save(fp + f'dentate_day_{str(x)}_seed_{seed}_run_{name}')
     sc.tl.umap(model._adata_z)
     model._adata.obsp = model._adata_z.obsp
     model._adata.obsm = model._adata_z.obsm
-    model._adata.write_h5ad(fp + f'modeladata-run{name}')
+    model._adata.write_h5ad(fp + f'dentate_scanpydata_seed_{seed}_run_{name}')
     
 if __name__ == "__main__":
     # load data
-    fp = ''
-    data = load_data("data/", file_name="dentate_withdays")
+    fp = '/home/alanluo/VITAE-1/output/'
+    data = load_data("/home/alanluo/VITAE-1/data/", file_name="dentate_withdays")
     labels = pd.DataFrame({'Grouping': data['grouping']}, index = data['cell_ids'])
     labels['Grouping'] = labels['Grouping'].astype("category")
     genes = pd.DataFrame({'gene_names': data['gene_names']}, index = data['gene_names'])
