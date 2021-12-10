@@ -68,5 +68,5 @@ if __name__ == "__main__":
     sc.tl.leiden(dd, resolution = 0.4)
     sc.tl.umap(dd)
     for seed in range(20):
-        run(seed, data, seed, fp)
+        run(seed, dd, seed, fp)
 
