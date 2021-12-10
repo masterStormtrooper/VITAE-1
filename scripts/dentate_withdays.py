@@ -78,6 +78,16 @@ if __name__ == "__main__":
     sc.pp.neighbors(dd, n_neighbors=10, n_pcs=40)
     sc.tl.leiden(dd, resolution = 0.4)
     sc.tl.umap(dd)
+
+    reset_random_seeds(400)
+    tf.keras.backend.clear_session() 
+    model = VITAE()
+    model.initialize(adata = dd, covariates='days', model_type = 'Gaussian')
+    model.pre_train() 
+    model.init_latent_space(cluster_label= 'leiden', res = 0.4, pilayer=True) 
+    model.visualize_latent(color = ['vitae_init_clustering'], method = "UMAP")
+    model.train()
+    model.visualize_latent(color = ['vitae_new_clustering'], method = "UMAP")
     for seed in range(20):
         run(seed, dd, seed, fp)
 
