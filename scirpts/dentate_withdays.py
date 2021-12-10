@@ -43,7 +43,8 @@ def run(seed, data, name, fp):
     p = model.vae.pilayer
     for x in data.obs['days'].unique():
         tmp = tf.expand_dims(tf.constant([x], dtype=tf.float32), 0)
-        tf.nn.softmax(p(tmp)).numpy()[0].save(fp + f'dentate_day_{str(x)}_seed_{seed}_run_{name}')
+        fn = fp + f'dentate_day_{str(x)}_seed_{seed}_run_{name}.npy'
+        np.save(fn, tf.nn.softmax(p(tmp)).numpy()[0])
     sc.tl.umap(model._adata_z)
     model._adata.obsp = model._adata_z.obsp
     model._adata.obsm = model._adata_z.obsm
