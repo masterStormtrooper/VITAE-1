@@ -37,9 +37,8 @@ def run(seed, data, name, fp):
     tf.keras.backend.clear_session() 
     model = VITAE.VITAE()
     model.initialize(adata = data, covariates='days', model_type = 'Gaussian')
-    model.pre_train() 
     model.pre_train(early_stopping_tolerance = 0.01, early_stopping_relative = True)
-    model.init_latent_space(cluster_label= 'leiden', res = 0.4)
+    model.init_latent_space(cluster_label= 'leiden', res = 0.4, pilayer=True) 
     model.train(early_stopping_tolerance = 0.01, early_stopping_relative = True)
 
     f, axes = plt.subplots(1, 5, figsize=(25,5))
@@ -48,11 +47,7 @@ def run(seed, data, name, fp):
     p = model.vae.pilayer
     
     for x in data.obs['days'].unique():
-        print(x)
         tmp = tf.expand_dims(tf.constant([x], dtype=tf.float32), 0)
-        print(tmp)
-        print(p)
-        print(tf.nn.softmax(p(tmp)).numpy())
         pi_val = tf.nn.softmax(p(tmp)).numpy()[0]
         matrix, mask = create_heatmap_matrix(pi_val)
         sns.heatmap(matrix, vmin=0, vmax=1, cmap="YlGnBu", mask=mask, ax=axes[idx], cbar_ax=cbar_ax)
