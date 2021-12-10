@@ -81,7 +81,7 @@ if __name__ == "__main__":
 
     reset_random_seeds(400)
     tf.keras.backend.clear_session() 
-    model = VITAE()
+    model = VITAE.VITAE()
     model.initialize(adata = dd, covariates='days', model_type = 'Gaussian')
     model.pre_train() 
     model.init_latent_space(cluster_label= 'leiden', res = 0.4, pilayer=True) 
