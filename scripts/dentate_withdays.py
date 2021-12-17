@@ -46,7 +46,7 @@ def run(seed, data, name, fp):
     idx = 0
     p = model.vae.pilayer
     
-    for x in data.obs['days'].unique():
+    for x in data.obs['days'].unique().sort_values():
         tmp = tf.expand_dims(tf.constant([x], dtype=tf.float32), 0)
         pi_val = tf.nn.softmax(p(tmp)).numpy()[0]
         matrix, mask = create_heatmap_matrix(pi_val)
