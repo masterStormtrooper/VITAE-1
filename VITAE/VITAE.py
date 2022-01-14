@@ -83,7 +83,7 @@ class VITAE():
         else:
             self.adata = adata
         if covariates is not None:
-            self.c_score = adata.obs[covariates].to_numpy().reshape(-1, 1) # need to change afterwards
+            self.c_score = adata.obs[covariates].to_numpy() # need to change afterwards
         else:
             self.c_score = None
         

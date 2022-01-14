@@ -3,7 +3,7 @@ import scanpy as sc
 import numpy as np
 import os as os
 import sys
-sys.path.append('/home/alanluo/vitae_git/VITAE')
+sys.path.append('/home/alanluo/VITAE-1')
 import VITAE
 from VITAE.utils import load_data
 from tensorflow.python.client import device_lib
